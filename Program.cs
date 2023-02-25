@@ -12,7 +12,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseSqlite("Filename=OpenDocs.db");
+    options.UseSqlite(builder.Configuration.GetSection("ConnectionString").Value);
     options.UseLazyLoadingProxies();    
 });
 
