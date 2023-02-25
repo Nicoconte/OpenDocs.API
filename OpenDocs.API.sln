@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33403.182
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenDocs.API", "OpenDocs.API.csproj", "{E6FB0901-E5FF-4D19-91AA-CAB13BB9503E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E6FB0901-E5FF-4D19-91AA-CAB13BB9503E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6FB0901-E5FF-4D19-91AA-CAB13BB9503E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6FB0901-E5FF-4D19-91AA-CAB13BB9503E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6FB0901-E5FF-4D19-91AA-CAB13BB9503E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {086592B9-A967-4D20-94B6-FF91AE401E8D}
+	EndGlobalSection
+EndGlobal
