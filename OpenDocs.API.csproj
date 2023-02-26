@@ -10,6 +10,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Dtos\**" />
+    <Compile Remove="Storage\**" />
+    <Content Remove="Dtos\**" />
+    <Content Remove="Storage\**" />
+    <EmbeddedResource Remove="Dtos\**" />
+    <EmbeddedResource Remove="Storage\**" />
+    <None Remove="Dtos\**" />
+    <None Remove="Storage\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.14">
       <PrivateAssets>all</PrivateAssets>
@@ -22,14 +34,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Configurations\Profiles\" />
-    <Folder Include="Contracts\Dtos\" />
-    <Folder Include="Contracts\Responses\" />
-    <Folder Include="Contracts\Requests\" />
-    <Folder Include="Controllers\" />
-    <Folder Include="Models\" />
     <Folder Include="Configurations\Middlewares\" />
-    <Folder Include="Services\" />
+    <Folder Include="Contracts\Responses\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="OpenDocs.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

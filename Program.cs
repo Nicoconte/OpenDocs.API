@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
+using OpenDocs.API.Configurations.Extensions;
 using OpenDocs.API.Data;
+using OpenDocs.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +19,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseLazyLoadingProxies();    
 });
 
+builder.Services.AddTransient<ISettingService, SettingService>();
+builder.Services.AddTransient<IStorageService, StorageService>();
+builder.Services.AddTransient<IApplicationService, ApplicationService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -30,5 +37,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseCustomStaticFiles();
 
 app.Run();
