@@ -23,6 +23,12 @@ builder.Services.AddTransient<ISettingService, SettingService>();
 builder.Services.AddTransient<IStorageService, StorageService>();
 builder.Services.AddTransient<IApplicationService, ApplicationService>();
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -34,10 +40,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors();
+
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.UseCustomStaticFiles();
+
 
 app.Run();
