@@ -47,7 +47,7 @@ namespace OpenDocs.API.Controllers
 
                     _storageService.CreateFolder(setting.StorageBasePath, appId);
 
-                    _settingService.GetEnviroments().ForEach(env => _storageService.CreateFolder(folderPath, env));
+                    (await _settingService.GetEnvironments()).ForEach(env => _storageService.CreateFolder(folderPath, env.EnvironmentType));
 
                 }
 
@@ -67,10 +67,40 @@ namespace OpenDocs.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllApplications([FromQuery] string? groupId)
+        public async Task<IActionResult> GetAllApplications([FromQuery] string? groupId, string? name)
         {
             try
             {
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    var app = await _applicationService.GetApplicationByName(name);
+
+                    if (app is null)
+                        throw new ApplicationNotFoundException(name);
+
+
+                    var setting = await _settingService.GetSettings();
+
+                    List<object> filesPerEnv = new List<object>();
+
+                    (await _settingService.GetEnvironments()).ForEach(env => filesPerEnv.Add(new
+                    {
+                        Environment = env,
+                        Files = _storageService.GetFilesFromFolder($"{setting.StorageBasePath}{app.Id}/{env.EnvironmentType}/")
+                    }));
+
+
+                    return Ok(new
+                    {
+                        Success = true,
+                        Content = new
+                        {
+                            app,
+                            FilesPerEnvironment = filesPerEnv
+                        }
+                    });
+                }
+
                 var apps = await _applicationService.ListApplications(groupId);
 
                 return Ok(new
@@ -80,48 +110,6 @@ namespace OpenDocs.API.Controllers
                 });
             }
             catch(Exception ex)
-            {
-                return BadRequest(new
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message
-                });
-            }
-        }
-
-        [HttpGet("{name}")]
-        public async Task<IActionResult> GetApplication([FromRoute] string name)
-        {
-            try
-            {
-                var app = await _applicationService.GetApplicationByName(name);
-
-                if (app is null)
-                    throw new ApplicationNotFoundException(name);
-
-
-                var setting = await _settingService.GetSettings();
-
-                List<object> filesPerEnv = new List<object>();
-
-                _settingService.GetEnviroments().ForEach(env => filesPerEnv.Add(new
-                {
-                    Environment = env,
-                    Files = _storageService.GetFilesFromFolder($"{setting.StorageBasePath}{app.Id}/{env}/")
-                }));
-
-
-                return Ok(new
-                {
-                    Success = true,
-                    Content = new
-                    {
-                        app,
-                        FilesPerEnvironment =  filesPerEnv
-                    }
-                });
-            }
-            catch (Exception ex)
             {
                 return BadRequest(new
                 {

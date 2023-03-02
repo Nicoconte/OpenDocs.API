@@ -43,6 +43,19 @@ namespace OpenDocs.API.Services
             {
                 await file.CopyToAsync(fileStream);
             }
+
+            var filename = Path.GetFileName(path);
+
+            var directoryFiles = Directory.GetFiles(path.Replace($"/{filename}", string.Empty));
+
+            var lastFileAfterCopy = directoryFiles.Length >= 2 
+                ? directoryFiles[directoryFiles.Length - 2] 
+                : directoryFiles[directoryFiles.Length - 1];
+
+            if (directoryFiles.Length >= 2 && File.ReadAllBytes(path).SequenceEqual(File.ReadAllBytes(lastFileAfterCopy)))
+            {
+                File.Delete(path);
+            }
         }
     }
 }

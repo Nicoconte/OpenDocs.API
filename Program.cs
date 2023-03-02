@@ -1,3 +1,4 @@
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using OpenDocs.API.Configurations.Extensions;
@@ -22,6 +23,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddTransient<ISettingService, SettingService>();
 builder.Services.AddTransient<IStorageService, StorageService>();
 builder.Services.AddTransient<IApplicationService, ApplicationService>();
+
+builder.Services.AddFluentValidation(options =>
+{
+    options.RegisterValidatorsFromAssemblyContaining(typeof(Program));
+});
 
 
 builder.Services.AddCors(options =>

@@ -2,6 +2,7 @@
 using OpenDocs.API.Data;
 using OpenDocs.API.Exceptions;
 using OpenDocs.API.Models;
+using Environments = OpenDocs.API.Models.Environments;
 
 namespace OpenDocs.API.Services
 {
@@ -14,9 +15,9 @@ namespace OpenDocs.API.Services
             _context = context;
         }
 
-        public List<string> GetEnviroments()
+        public async Task<List<Environments>> GetEnvironments()
         {
-            return new List<string>() { "Development", "Testing", "Production" };
+            return await _context.Environments.ToListAsync();
         }
 
         public async Task<Settings> GetSettings()
@@ -37,13 +38,13 @@ namespace OpenDocs.API.Services
 
             var envs = await _context.Environments.ToListAsync();
 
-            foreach(var defEnv in GetEnviroments())
+            foreach(var defaultEnvironment in new List<string>() { "Development", "Testing", "Production" })
             {
-                if (!envs.Any(c => c.EnvironmentType == defEnv))
+                if (!envs.Any(c => c.EnvironmentType == defaultEnvironment))
                 {
                     _context.Environments.Add(new Models.Environments
                     {
-                        EnvironmentType = defEnv,
+                        EnvironmentType = defaultEnvironment,
                         IsActive = true,
                         AccessKey = Guid.NewGuid().ToString(),
                     });
