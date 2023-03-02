@@ -8,7 +8,6 @@ namespace OpenDocs.API.Validators
         public SyncApplicationDocsRequestValidator() 
         {
             RuleFor(c => c.Environment)
-                .Cascade(CascadeMode.StopOnFirstFailure)
                 .NotNull()
                 .NotEmpty()
                 .WithErrorCode("400")
@@ -18,18 +17,25 @@ namespace OpenDocs.API.Validators
                 .WithMessage("Invalid environment");
 
             RuleFor(c => c.ApplicationName)
-                .Cascade(CascadeMode.StopOnFirstFailure)
                 .NotNull()
                 .NotEmpty()
                 .WithErrorCode("400")
                 .WithMessage("Application name cannot be empty");
 
-            RuleFor(c => c.SwaggerFile.ContentType)
+            RuleFor(c => c.AccessKey)
+                .NotNull()
+                .NotEmpty()
+                .WithErrorCode("400")
+                .WithMessage("Access key name cannot be empty");
+
+            RuleFor(c => c.SwaggerFile)
                 .Cascade(CascadeMode.StopOnFirstFailure)
                 .NotNull()
-                .Must(c => c.Contains("json"))
                 .WithErrorCode("400")
-                .WithMessage("Swagger file should a json file");
+                .WithMessage("Swagger file cannot be empty")
+                .Must(c => c.ContentType.Contains("json"))
+                .WithErrorCode("400")
+                .WithMessage("Swagger file should be a json file");
         }
     }
 }

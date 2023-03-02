@@ -28,6 +28,8 @@ namespace OpenDocs.API.Controllers
         {
             try
             {
+                await _settingService.CheckEnvironmentAccess(request.Environment, request.AccessKey);
+
                 var setting = await _settingService.GetSettings();
                 var app = await _applicationService.GetApplicationByName(request.ApplicationName);
 

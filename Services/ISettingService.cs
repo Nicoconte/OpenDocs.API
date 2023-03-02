@@ -8,6 +8,7 @@ namespace OpenDocs.API.Services
         public Task<bool> InitSettings();
         public Task<List<Environments>> GetEnvironments();
         public Task<Settings> GetSettings();
+        public Task CheckEnvironmentAccess(string env, string accessKey);
         public Task<bool> UpdateRetentionDays(int days);
         public Task<bool> UpdateStorageBasePath(string path);
     }

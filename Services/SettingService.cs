@@ -15,6 +15,17 @@ namespace OpenDocs.API.Services
             _context = context;
         }
 
+        public async Task CheckEnvironmentAccess(string env, string accessKey)
+        {
+            var environment = await _context.Environments.FirstOrDefaultAsync(c => c.EnvironmentType == env && c.AccessKey == accessKey);
+
+            if (environment is null) 
+                throw new InvalidEnvironmentAccessException(env);
+
+            if (!environment.IsActive) 
+                throw new InactiveEnvironmentException(env);
+        }
+
         public async Task<List<Environments>> GetEnvironments()
         {
             return await _context.Environments.ToListAsync();
