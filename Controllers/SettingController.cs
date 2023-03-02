@@ -15,6 +15,23 @@ namespace OpenDocs.API.Controllers
             _settingService = settingService;
         }
 
+        [HttpGet("environments")]
+        public async Task<IActionResult> GetEnvironments()
+        {
+            try
+            {
+                return Ok((await _settingService.GetEnvironments()).Where(e => e.IsActive).Select(e => e.EnvironmentType));
+            }
+            catch(Exception ex) 
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                });
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetSettings() 
         {
