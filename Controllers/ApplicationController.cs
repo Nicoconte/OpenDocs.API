@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace OpenDocs.API.Controllers
 {
-    [Route("api/application")]
+    [Route("api/applications")]
     [ApiController]
     public class ApplicationController : ControllerBase
     {
@@ -58,6 +58,8 @@ namespace OpenDocs.API.Controllers
                     await _applicationService.UpdateGroupId(request.ApplicationName, request?.GroupID);
                 }
 
+                await _applicationService.SetCurrentModificationDate(request.ApplicationName);
+
                 _storageService.CreateFile(filePath, request.SwaggerFile.OpenReadStream());
 
                 return Ok();
@@ -68,50 +70,128 @@ namespace OpenDocs.API.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllApplications([FromQuery] string? groupId, string? name)
+        [HttpDelete]
+        public async Task<IActionResult> DeleteApplication([FromRoute] string applicationName)
         {
             try
             {
-                if (!string.IsNullOrWhiteSpace(name))
+                var deleted = await _applicationService.DeleteApplication(applicationName);
+
+                return Ok(new
                 {
-                    var app = await _applicationService.GetApplicationByName(name);
+                    Success = deleted
+                });
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                });
+            }
+        }
 
-                    if (app is null)
-                        throw new ApplicationNotFoundException(name);
+        [HttpGet("{applicationName}")]
+        public async Task<IActionResult> GetApplicationByName([FromRoute] string applicationName)
+        {
+            try
+            {
+                var app = await _applicationService.GetApplicationByName(applicationName);
 
+                if (app is null) throw new ApplicationNotFoundException(applicationName);
 
-                    var setting = await _settingService.GetSettings();
+                var setting = await _settingService.GetSettings();
 
-                    List<object> filesPerEnv = new List<object>();
+                var files = new List<object>();
 
-                    (await _settingService.GetEnvironments()).ForEach(env => filesPerEnv.Add(new
+                (await _settingService.GetEnvironments())
+                    .Where(s => s.IsActive)
+                    .Select(s => s.EnvironmentType)
+                    .ToList()
+                    .ForEach(env => files.Add(new
                     {
-                        Environment = env,
-                        Files = _storageService.GetFilesFromFolder($"{setting.StorageBasePath}{app.Id}/{env.EnvironmentType}/")
+                        Files = _storageService.GetFilesFromFolder($"{setting.StorageBasePath}/{app.Id}/{env}/"),
+                        Environment = env
                     }));
-
-
-                    return Ok(new
-                    {
-                        Success = true,
-                        Content = new
-                        {
-                            app,
-                            FilesPerEnvironment = filesPerEnv
-                        }
-                    });
-                }
-
-                var apps = await _applicationService.ListApplications(groupId);
 
                 return Ok(new
                 {
                     Success = true,
-                    Content = apps
+                    Application = app,
+                    ApplicationFiles = files
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllApplications([FromQuery] int startIndex = 0, int quantity = 10, string? name = "")
+        {
+            try
+            {
+                var groups = await _applicationService.GetAllApplications(startIndex, quantity, name);
+
+                return Ok(new
+                {
+                    Success = true,
+                    Applications = groups
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("groups/{groupId}")]
+        public async Task<IActionResult> GetApplicationsByGroup([FromRoute] string groupId)
+        {
+            try
+            {
+                var apps = await _applicationService.GetApplicationsByGroup(groupId);
+
+                return Ok(new
+                {
+                    Success = true,
+                    Groups = apps
                 });
             }
             catch(Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("groups")]
+        public async Task<IActionResult> GetAllGroups([FromQuery] int startIndex = 0, int quantity = 10, string? name = "")
+        {
+            try
+            {
+                var groups = await _applicationService.GetAllGroups(startIndex, quantity, name);
+
+                return Ok(new
+                {
+                    Success = true,
+                    Groups = groups
+                });
+            }
+            catch (Exception ex)
             {
                 return BadRequest(new
                 {

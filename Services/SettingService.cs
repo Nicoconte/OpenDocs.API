@@ -91,7 +91,7 @@ namespace OpenDocs.API.Services
             if (setting is null) 
                 throw new EntityNotFoundException(nameof(Settings));
 
-            setting.StorageBasePath = path;
+            setting.StorageBasePath = path.EndsWith("/") ? path.TrimEnd('/') : path;
             setting.UpdatedAt = DateTime.Now;
 
             _context.Settings.Update(setting);

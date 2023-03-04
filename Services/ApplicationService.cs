@@ -2,6 +2,7 @@
 using OpenDocs.API.Data;
 using OpenDocs.API.Exceptions;
 using OpenDocs.API.Models;
+using System.Text.RegularExpressions;
 
 namespace OpenDocs.API.Services
 {
@@ -36,21 +37,17 @@ namespace OpenDocs.API.Services
             return rows > 0;
         }
 
-        public async Task<Applications> GetApplicationByName(string appname)
+        public async Task SetCurrentModificationDate(string appname)
         {
-            return await _context.Applications.FirstOrDefaultAsync(c => c.Name == appname);
-        }
+            var app = await _context.Applications.FirstOrDefaultAsync(s => s.Name == appname);
 
-        public async Task<List<Applications>> ListApplications(string groupId)
-        {
-            var query = _context.Applications.AsQueryable();
+            if (app is null) throw new ApplicationNotFoundException(appname);
 
-            if (!string.IsNullOrWhiteSpace(groupId))
-                query = _context.Applications.Where(s => s.GroupId == groupId);
+            app.UpdatedAt = DateTime.Now;
 
-            var apps = await query.ToListAsync();
+            _context.Applications.Update(app);
 
-            return apps;
+            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> UpdateGroupId(string appname, string groupId)
@@ -58,7 +55,7 @@ namespace OpenDocs.API.Services
             var app = await _context.Applications.FirstOrDefaultAsync(s => s.Name == appname);
 
             if (app is null) throw new ApplicationNotFoundException(appname);
-            
+
             app.GroupId = groupId;
 
             _context.Applications.Update(app);
@@ -67,6 +64,57 @@ namespace OpenDocs.API.Services
 
 
             return rows > 0;
+        }
+
+        public async Task<List<Applications>> GetAllApplications(int? startIndex = 0, int? quantity = 10, string? name = "")
+        {
+            var query = _context.Applications.AsQueryable();
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                query = query.Where(s => s.Name.ToLower().Contains(name.ToLower()));
+            }
+
+            if (startIndex != null && quantity != null)
+            {
+                query = query.Skip(startIndex.Value).Take(quantity.Value);
+            }
+
+
+            var apps = await query.ToListAsync();
+
+            return apps;
+        }
+
+        public async Task<List<string>> GetAllGroups(int? startIndex = 0, int? quantity = 10, string? name = "")
+        {
+            var query = _context.Applications.AsQueryable();
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                query = query.Where(s => s.GroupId.ToLower().Contains(name.ToLower()));
+            }
+
+            if (startIndex != null && quantity != null)
+            {
+                query = query.Skip(startIndex.Value).Take(quantity.Value);
+            }
+
+
+            var groups = (await query.ToListAsync()).Select(s => s.GroupId).Distinct().ToList();
+
+            return groups;
+        }
+
+        public async Task<Applications> GetApplicationByName(string appname)
+        {
+            var app = await _context.Applications.FirstOrDefaultAsync(a => a.Name == appname);
+            return app;
+        }
+
+        public async Task<List<Applications>> GetApplicationsByGroup(string groupId)
+        {
+            return await _context.Applications.Where(s => s.GroupId == groupId).ToListAsync();
         }
     }
 }
