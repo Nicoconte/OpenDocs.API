@@ -2,6 +2,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using OpenDocs.API.Configurations.Extensions;
+using OpenDocs.API.Configurations.Filters;
 using OpenDocs.API.Data;
 using OpenDocs.API.Services;
 
@@ -33,6 +34,11 @@ builder.Services.AddFluentValidation(options =>
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+});
+
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add(new ApiExceptionFilterAttribute());
 });
 
 var app = builder.Build();

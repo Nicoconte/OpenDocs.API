@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OpenDocs.API.Contracts.Requests;
+using OpenDocs.API.Contracts.Responses;
 using OpenDocs.API.Exceptions;
 using OpenDocs.API.Models;
 using OpenDocs.API.Services;
+using System.Net;
 using System.Text.RegularExpressions;
 
 namespace OpenDocs.API.Controllers
@@ -66,139 +68,78 @@ namespace OpenDocs.API.Controllers
             }
             catch(Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode((int)HttpStatusCode.InternalServerError, ex.Message);
             }
         }
 
         [HttpDelete]
         public async Task<IActionResult> DeleteApplication([FromRoute] string applicationName)
         {
-            try
-            {
-                var deleted = await _applicationService.DeleteApplication(applicationName);
+            var deleted = await _applicationService.DeleteApplication(applicationName);
 
-                return Ok(new
-                {
-                    Success = deleted
-                });
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(new
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message
-                });
-            }
+            return Ok();
         }
 
         [HttpGet("{applicationName}")]
         public async Task<IActionResult> GetApplicationByName([FromRoute] string applicationName)
         {
-            try
-            {
-                var app = await _applicationService.GetApplicationByName(applicationName);
+            var application = await _applicationService.GetApplicationByName(applicationName);
 
-                if (app is null) throw new ApplicationNotFoundException(applicationName);
+            if (application is null) throw new ApplicationNotFoundException(applicationName);
 
-                var setting = await _settingService.GetSettings();
+            var setting = await _settingService.GetSettings();
 
-                var files = new List<object>();
+            var applicationContent = new List<object>();
 
-                (await _settingService.GetEnvironments())
-                    .Where(s => s.IsActive)
-                    .Select(s => s.EnvironmentType)
-                    .ToList()
-                    .ForEach(env => files.Add(new
-                    {
-                        Files = _storageService.GetFilesFromFolder($"{setting.StorageBasePath}/{app.Id}/{env}/"),
-                        Environment = env
-                    }));
-
-                return Ok(new
+            (await _settingService.GetEnvironments())
+                .Where(s => s.IsActive)
+                .Select(s => s.EnvironmentType)
+                .ToList()
+                .ForEach(env => applicationContent.Add(new
                 {
-                    Success = true,
-                    Application = app,
-                    ApplicationFiles = files
-                });
-            }
-            catch (Exception ex)
+                    Environment = env,
+                    Files = _storageService.GetFilesFromFolder($"{setting.StorageBasePath}/{application.Id}/{env}/"),
+                }));
+
+            return Ok(new GetApplicationByNameResponse()
             {
-                return BadRequest(new
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message
-                });
-            }
+                Name = application.Name,
+                GroupId = application.GroupId,
+                Content = applicationContent
+            });
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllApplications([FromQuery] int startIndex = 0, int quantity = 10, string? name = "")
         {
-            try
-            {
-                var groups = await _applicationService.GetAllApplications(startIndex, quantity, name);
+            var applications = await _applicationService.GetAllApplications(startIndex, quantity, name);
 
-                return Ok(new
-                {
-                    Success = true,
-                    Applications = groups
-                });
-            }
-            catch (Exception ex)
+            return Ok(new GetAllApplicationsResponse()
             {
-                return BadRequest(new
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message
-                });
-            }
+                Applications = applications
+            });
         }
 
         [HttpGet("groups/{groupId}")]
         public async Task<IActionResult> GetApplicationsByGroup([FromRoute] string groupId)
         {
-            try
-            {
-                var apps = await _applicationService.GetApplicationsByGroup(groupId);
+            var applications = await _applicationService.GetApplicationsByGroup(groupId);
 
-                return Ok(new
-                {
-                    Success = true,
-                    Groups = apps
-                });
-            }
-            catch(Exception ex)
+            return Ok(new GetApplicationsByGroupResponse()
             {
-                return BadRequest(new
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message
-                });
-            }
+                Applications = applications
+            });
         }
 
         [HttpGet("groups")]
         public async Task<IActionResult> GetAllGroups([FromQuery] int startIndex = 0, int quantity = 10, string? name = "")
         {
-            try
-            {
-                var groups = await _applicationService.GetAllGroups(startIndex, quantity, name);
+            var groups = await _applicationService.GetAllGroups(startIndex, quantity, name);
 
-                return Ok(new
-                {
-                    Success = true,
-                    Groups = groups
-                });
-            }
-            catch (Exception ex)
+            return Ok(new GetAllGroupsResponse()
             {
-                return BadRequest(new
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message
-                });
-            }
+                Groups = groups
+            });
         }
     }
 }

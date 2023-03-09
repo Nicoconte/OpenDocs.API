@@ -36,7 +36,6 @@
 
   <ItemGroup>
     <Folder Include="Configurations\Middlewares\" />
-    <Folder Include="Contracts\Responses\" />
   </ItemGroup>
 
   <ItemGroup>
